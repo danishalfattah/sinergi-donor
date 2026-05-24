@@ -61,14 +61,29 @@ npm run start:dev
 
 ## Main Endpoints
 
+### Units
 - `POST /api/v1/units`
 - `GET /api/v1/units`
+- `GET /api/v1/units/:id`
+- `PATCH /api/v1/units/:id`
+- `DELETE /api/v1/units/:id`
+
+### Blood Bags
+- `POST /api/v1/blood-bags`
 - `GET /api/v1/blood-bags`
+- `GET /api/v1/blood-bags/:id`
 - `PATCH /api/v1/blood-bags/:id/status`
+
+### Stock
 - `GET /api/v1/stock/summary`
 - `GET /api/v1/stock/critical`
 - `GET /api/v1/stock/expiring-soon`
+- `GET /api/v1/stock/by-unit/:unitId`
+
+### Stock Transfers
 - `POST /api/v1/stock-transfers`
+- `GET /api/v1/stock-transfers`
+- `GET /api/v1/stock-transfers/:id`
 - `PATCH /api/v1/stock-transfers/:id/dispatch`
 - `PATCH /api/v1/stock-transfers/:id/complete`
 - `PATCH /api/v1/stock-transfers/:id/cancel`
