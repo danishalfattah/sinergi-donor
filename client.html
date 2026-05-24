@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sinergi Donor Inventory Client</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f6f7f9;
+        color: #1f2937;
+      }
+      header {
+        background: #991b1b;
+        color: white;
+        padding: 20px 28px;
+      }
+      main {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+        padding: 24px;
+      }
+      section {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 16px;
+      }
+      input,
+      select,
+      textarea,
+      button {
+        box-sizing: border-box;
+        width: 100%;
+        margin-top: 8px;
+        padding: 9px;
+      }
+      button {
+        border: 0;
+        border-radius: 6px;
+        background: #991b1b;
+        color: white;
+        cursor: pointer;
+      }
+      pre {
+        max-height: 360px;
+        overflow: auto;
+        background: #111827;
+        color: #d1d5db;
+        padding: 16px;
+        border-radius: 8px;
+      }
+      .wide {
+        grid-column: 1 / -1;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Sinergi Donor Inventory Client</h1>
+      <label>API Base URL <input id="baseUrl" value="http://localhost:3000/api/v1" /></label>
+    </header>
+    <main>
+      <section>
+        <h2>Units</h2>
+        <button onclick="api(event, 'GET', '/units')">List Units</button>
+        <textarea id="unitBody" rows="10">{
+  "code": "UDD-MLG-999",
+  "name": "UDD Demo",
+  "type": "UDD",
+  "address": "Jl. Demo",
+  "city": "Malang",
+  "province": "Jawa Timur",
+  "latitude": -7.9666,
+  "longitude": 112.6326,
+  "criticalThreshold": 5
+}</textarea>
+        <button onclick="api(event, 'POST', '/units', json('unitBody'))">Create Unit</button>
+      </section>
+      <section>
+        <h2>Blood Bags</h2>
+        <button onclick="api(event, 'GET', '/blood-bags')">List Blood Bags</button>
+        <textarea id="bagBody" rows="10">{
+  "serialNumber": "BB-2026-99999",
+  "bloodType": "O_NEG",
+  "component": "PRC",
+  "volumeMl": 350,
+  "collectionDate": "2026-05-24T08:30:00.000Z",
+  "unitId": "replace-with-unit-id"
+}</textarea>
+        <button onclick="api(event, 'POST', '/blood-bags', json('bagBody'))">Create Blood Bag</button>
+      </section>
+      <section>
+        <h2>Stock</h2>
+        <button onclick="api(event, 'GET', '/stock/summary')">Summary</button>
+        <button onclick="api(event, 'GET', '/stock/critical')">Critical</button>
+        <button onclick="api(event, 'GET', '/stock/expiring-soon?days=7')">Expiring Soon</button>
+      </section>
+      <section>
+        <h2>Transfers</h2>
+        <button onclick="api(event, 'GET', '/stock-transfers')">List Transfers</button>
+        <textarea id="transferBody" rows="10">{
+  "fromUnitId": "replace-with-source-unit-id",
+  "toUnitId": "replace-with-target-unit-id",
+  "reason": "MANUAL",
+  "bloodBagIds": ["replace-with-available-bag-id"],
+  "notes": "Demo transfer"
+}</textarea>
+        <button onclick="api(event, 'POST', '/stock-transfers', json('transferBody'))">Create Transfer</button>
+        <input id="transferId" placeholder="transfer id" />
+        <button onclick="api(event, 'PATCH', '/stock-transfers/' + val('transferId') + '/dispatch')">Dispatch</button>
+        <button onclick="api(event, 'PATCH', '/stock-transfers/' + val('transferId') + '/complete')">Complete</button>
+        <button onclick="api(event, 'PATCH', '/stock-transfers/' + val('transferId') + '/cancel', { cancelReason: 'Demo cancel' })">Cancel</button>
+      </section>
+      <section class="wide">
+        <h2>Response</h2>
+        <pre id="output">Click a button to call the API.</pre>
+      </section>
+    </main>
+    <script>
+      function val(id) {
+        return document.getElementById(id).value.trim();
+      }
+      function json(id) {
+        return JSON.parse(document.getElementById(id).value);
+      }
+      async function api(event, method, path, body) {
+        const button = event.currentTarget;
+        const originalText = button.textContent;
+        setLoading(button, true);
+        const options = {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+        };
+        if (body) options.body = JSON.stringify(body);
+        try {
+          const response = await fetch(val('baseUrl') + path, options);
+          const data = await response.json();
+          document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+          document.getElementById('output').textContent = String(error);
+        } finally {
+          setLoading(button, false, originalText);
+        }
+      }
+      function setLoading(activeButton, isLoading, originalText) {
+        document.querySelectorAll('button').forEach((button) => {
+          button.disabled = isLoading;
+        });
+        if (isLoading) {
+          activeButton.dataset.originalText = activeButton.textContent;
+          activeButton.textContent = 'Loading...';
+        } else {
+          activeButton.textContent = originalText || activeButton.dataset.originalText;
+        }
+      }
+    </script>
+  </body>
+</html>

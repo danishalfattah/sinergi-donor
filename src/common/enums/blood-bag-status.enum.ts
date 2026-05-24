@@ -1,0 +1,8 @@
+export enum BloodBagStatus {
+  AVAILABLE = 'AVAILABLE',
+  RESERVED = 'RESERVED',
+  IN_TRANSIT = 'IN_TRANSIT',
+  USED = 'USED',
+  EXPIRED = 'EXPIRED',
+  DISCARDED = 'DISCARDED',
+}

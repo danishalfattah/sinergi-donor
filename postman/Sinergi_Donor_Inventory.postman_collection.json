@@ -1,0 +1,295 @@
+{
+  "info": {
+    "name": "Sinergi Donor Inventory Service",
+    "description": "Postman collection for Sinergi Donor Inventory Service MVP. Import this collection together with the local environment file.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Units",
+      "item": [
+        {
+          "name": "List Units",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/units?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["units"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Unit",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"UDD-TST-001\",\n  \"name\": \"UDD Test Postman\",\n  \"type\": \"UDD\",\n  \"address\": \"Jl. Test No. 1\",\n  \"city\": \"Malang\",\n  \"province\": \"Jawa Timur\",\n  \"latitude\": -7.9666,\n  \"longitude\": 112.6326,\n  \"phone\": \"+62341123456\",\n  \"email\": \"udd.test@pmi.or.id\",\n  \"criticalThreshold\": 5\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/units",
+              "host": ["{{baseUrl}}"],
+              "path": ["units"]
+            }
+          }
+        },
+        {
+          "name": "Get Unit By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/units/{{unitId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["units", "{{unitId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Unit",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"UDD Test Postman Updated\",\n  \"criticalThreshold\": 6\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/units/{{unitId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["units", "{{unitId}}"]
+            }
+          }
+        },
+        {
+          "name": "Deactivate Unit",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/units/{{unitId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["units", "{{unitId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Blood Bags",
+      "item": [
+        {
+          "name": "List Blood Bags",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blood-bags?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["blood-bags"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Blood Bag",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serialNumber\": \"BB-2026-99001\",\n  \"bloodType\": \"O_NEG\",\n  \"component\": \"PRC\",\n  \"volumeMl\": 350,\n  \"collectionDate\": \"2026-05-24T08:30:00.000Z\",\n  \"unitId\": \"{{unitId}}\",\n  \"donorId\": \"donor-postman\",\n  \"notes\": \"Created from Postman\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blood-bags",
+              "host": ["{{baseUrl}}"],
+              "path": ["blood-bags"]
+            }
+          }
+        },
+        {
+          "name": "Get Blood Bag By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/blood-bags/{{bloodBagId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["blood-bags", "{{bloodBagId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Blood Bag Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"RESERVED\",\n  \"notes\": \"Reserved from Postman\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/blood-bags/{{bloodBagId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["blood-bags", "{{bloodBagId}}", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stock",
+      "item": [
+        {
+          "name": "Stock Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stock/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["stock", "summary"]
+            }
+          }
+        },
+        {
+          "name": "Critical Stock",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stock/critical",
+              "host": ["{{baseUrl}}"],
+              "path": ["stock", "critical"]
+            }
+          }
+        },
+        {
+          "name": "Expiring Soon",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stock/expiring-soon?days=7",
+              "host": ["{{baseUrl}}"],
+              "path": ["stock", "expiring-soon"],
+              "query": [{ "key": "days", "value": "7" }]
+            }
+          }
+        },
+        {
+          "name": "Expiring Soon 60 Days",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stock/expiring-soon?days=60",
+              "host": ["{{baseUrl}}"],
+              "path": ["stock", "expiring-soon"],
+              "query": [{ "key": "days", "value": "60" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stock Transfers",
+      "item": [
+        {
+          "name": "List Transfers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stock-transfers?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["stock-transfers"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Transfer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromUnitId\": \"{{fromUnitId}}\",\n  \"toUnitId\": \"{{toUnitId}}\",\n  \"reason\": \"MANUAL\",\n  \"bloodBagIds\": [\"{{availableBloodBagId}}\"],\n  \"notes\": \"Created from Postman\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/stock-transfers",
+              "host": ["{{baseUrl}}"],
+              "path": ["stock-transfers"]
+            }
+          }
+        },
+        {
+          "name": "Get Transfer By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stock-transfers/{{transferId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["stock-transfers", "{{transferId}}"]
+            }
+          }
+        },
+        {
+          "name": "Dispatch Transfer",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stock-transfers/{{transferId}}/dispatch",
+              "host": ["{{baseUrl}}"],
+              "path": ["stock-transfers", "{{transferId}}", "dispatch"]
+            }
+          }
+        },
+        {
+          "name": "Complete Transfer",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stock-transfers/{{transferId}}/complete",
+              "host": ["{{baseUrl}}"],
+              "path": ["stock-transfers", "{{transferId}}", "complete"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Transfer",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cancelReason\": \"Cancelled from Postman\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/stock-transfers/{{transferId}}/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["stock-transfers", "{{transferId}}", "cancel"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+export enum TransferReason {
+  CRITICAL_REQUEST = 'CRITICAL_REQUEST',
+  FEFO_REBALANCE = 'FEFO_REBALANCE',
+  MANUAL = 'MANUAL',
+}

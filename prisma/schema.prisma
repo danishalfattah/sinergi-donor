@@ -1,0 +1,128 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UnitType {
+  UDD
+  BDRS
+}
+
+enum BloodType {
+  A_POS
+  A_NEG
+  B_POS
+  B_NEG
+  AB_POS
+  AB_NEG
+  O_POS
+  O_NEG
+}
+
+enum ComponentType {
+  WHOLE_BLOOD
+  PRC
+  TC
+  FFP
+}
+
+enum BloodBagStatus {
+  AVAILABLE
+  RESERVED
+  IN_TRANSIT
+  USED
+  EXPIRED
+  DISCARDED
+}
+
+enum TransferStatus {
+  PENDING
+  IN_TRANSIT
+  COMPLETED
+  CANCELLED
+}
+
+enum TransferReason {
+  CRITICAL_REQUEST
+  FEFO_REBALANCE
+  MANUAL
+}
+
+model Unit {
+  id                String          @id @default(cuid())
+  code              String          @unique
+  name              String
+  type              UnitType
+  address           String
+  city              String
+  province          String
+  latitude          Decimal         @db.Decimal(10, 7)
+  longitude         Decimal         @db.Decimal(10, 7)
+  phone             String?
+  email             String?
+  criticalThreshold Int             @default(5)
+  isActive          Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  bloodBags         BloodBag[]
+  transfersFrom     StockTransfer[] @relation("FromUnit")
+  transfersTo       StockTransfer[] @relation("ToUnit")
+
+  @@index([type])
+  @@index([city, province])
+  @@map("units")
+}
+
+model BloodBag {
+  id             String         @id @default(cuid())
+  serialNumber   String         @unique
+  bloodType      BloodType
+  component      ComponentType
+  volumeMl       Int
+  collectionDate DateTime
+  expiryDate     DateTime
+  status         BloodBagStatus @default(AVAILABLE)
+  unitId         String
+  donorId        String?
+  notes          String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  unit           Unit           @relation(fields: [unitId], references: [id])
+  transfer       StockTransfer? @relation(fields: [transferId], references: [id])
+  transferId     String?
+
+  @@index([unitId, status])
+  @@index([bloodType, status])
+  @@index([expiryDate])
+  @@index([status, expiryDate])
+  @@map("blood_bags")
+}
+
+model StockTransfer {
+  id           String         @id @default(cuid())
+  transferCode String         @unique
+  fromUnitId   String
+  toUnitId     String
+  reason       TransferReason
+  status       TransferStatus @default(PENDING)
+  notes        String?
+  initiatedBy  String?
+  initiatedAt  DateTime       @default(now())
+  dispatchedAt DateTime?
+  completedAt  DateTime?
+  cancelledAt  DateTime?
+  cancelReason String?
+  fromUnit     Unit           @relation("FromUnit", fields: [fromUnitId], references: [id])
+  toUnit       Unit           @relation("ToUnit", fields: [toUnitId], references: [id])
+  bloodBags    BloodBag[]
+
+  @@index([fromUnitId, status])
+  @@index([toUnitId, status])
+  @@index([status, initiatedAt])
+  @@map("stock_transfers")
+}
