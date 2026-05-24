@@ -72,7 +72,3 @@ npm run start:dev
 - `PATCH /api/v1/stock-transfers/:id/dispatch`
 - `PATCH /api/v1/stock-transfers/:id/complete`
 - `PATCH /api/v1/stock-transfers/:id/cancel`
-
-## Scope MVP
-
-Tidak ada auth, Redis, WebSocket, Smart Dispatch, Donor Engagement, Identity Service, atau dashboard. Semua endpoint public untuk kebutuhan sprint MVP.
