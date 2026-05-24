@@ -2,16 +2,18 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '../../generated/prisma/client';
-import { PaginatedResult } from '../common/dto/pagination.dto';
-import { BloodBagStatus } from '../common/enums/blood-bag-status.enum';
-import { ComponentType } from '../common/enums/component-type.enum';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateBloodBagDto } from './dto/create-blood-bag.dto';
-import { FilterBloodBagsDto } from './dto/filter-blood-bags.dto';
-import { UpdateBloodBagStatusDto } from './dto/update-blood-bag-status.dto';
+import { Prisma } from '../../generated/prisma/client.js';
+import { PaginatedResult } from '../common/dto/pagination.dto.js';
+import { BloodBagStatus } from '../common/enums/blood-bag-status.enum.js';
+import { ComponentType } from '../common/enums/component-type.enum.js';
+import { EventPublisherService } from '../common/events/event-publisher.service.js';
+import { PrismaService } from '../prisma/prisma.service.js';
+import { CreateBloodBagDto } from './dto/create-blood-bag.dto.js';
+import { FilterBloodBagsDto } from './dto/filter-blood-bags.dto.js';
+import { UpdateBloodBagStatusDto } from './dto/update-blood-bag-status.dto.js';
 
 const SHELF_LIFE_DAYS: Record<ComponentType, number> = {
   [ComponentType.WHOLE_BLOOD]: 35,
@@ -42,7 +44,12 @@ const ALLOWED_TRANSITIONS: Record<BloodBagStatus, BloodBagStatus[]> = {
 
 @Injectable()
 export class BloodBagsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(BloodBagsService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventPublisher: EventPublisherService,
+  ) {}
 
   async create(dto: CreateBloodBagDto) {
     await this.assertUnitActive(dto.unitId);
@@ -56,7 +63,7 @@ export class BloodBagsService {
     const collectionDate = new Date(dto.collectionDate);
     const expiryDate = this.calculateExpiryDate(collectionDate, dto.component);
 
-    return this.prisma.bloodBag.create({
+    const bag = await this.prisma.bloodBag.create({
       data: {
         serialNumber: dto.serialNumber,
         bloodType: dto.bloodType,
@@ -71,6 +78,11 @@ export class BloodBagsService {
       },
       include: { unit: true },
     });
+
+    // Publish stock updated event after successful creation
+    await this.eventPublisher.publishStockUpdated(bag);
+
+    return bag;
   }
 
   async findAll(query: FilterBloodBagsDto): Promise<PaginatedResult<unknown>> {
@@ -126,7 +138,7 @@ export class BloodBagsService {
       throw new BadRequestException(`Cannot transition from ${current} to ${dto.status}`);
     }
 
-    return this.prisma.bloodBag.update({
+    const updatedBag = await this.prisma.bloodBag.update({
       where: { id },
       data: {
         status: dto.status,
@@ -134,6 +146,11 @@ export class BloodBagsService {
       },
       include: { unit: true },
     });
+
+    // Publish stock updated event after successful status change
+    await this.eventPublisher.publishStockUpdated(updatedBag);
+
+    return updatedBag;
   }
 
   private async assertUnitActive(unitId: string): Promise<void> {

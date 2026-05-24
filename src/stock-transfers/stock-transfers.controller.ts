@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CancelTransferDto } from './dto/cancel-transfer.dto';
-import { CreateTransferDto } from './dto/create-transfer.dto';
-import { FilterTransfersDto } from './dto/filter-transfers.dto';
-import { StockTransfersService } from './stock-transfers.service';
+import { ApiExcludeEndpoint, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { CancelTransferDto } from './dto/cancel-transfer.dto.js';
+import { CreateTransferDto } from './dto/create-transfer.dto.js';
+import { FilterTransfersDto } from './dto/filter-transfers.dto.js';
+import { StockTransfersService } from './stock-transfers.service.js';
 
 @ApiTags('Stock Transfers')
 @Controller({ path: 'stock-transfers', version: '1' })
@@ -32,6 +32,7 @@ export class StockTransfersController {
   }
 
   @Patch(':id/dispatch')
+  @ApiExcludeEndpoint()
   @ApiOperation({ summary: 'Mark pending transfer as in transit' })
   @ApiResponse({ status: 200, description: 'Transfer dispatched' })
   dispatch(@Param('id') id: string) {
@@ -46,6 +47,7 @@ export class StockTransfersController {
   }
 
   @Patch(':id/cancel')
+  @ApiExcludeEndpoint()
   @ApiOperation({ summary: 'Cancel pending transfer and release bags' })
   @ApiResponse({ status: 200, description: 'Transfer cancelled' })
   cancel(@Param('id') id: string, @Body() dto: CancelTransferDto) {

@@ -1,16 +1,20 @@
-import { Injectable } from '@nestjs/common';
-import { BloodType } from '../common/enums/blood-type.enum';
-import { BloodBagStatus } from '../common/enums/blood-bag-status.enum';
-import { ComponentType } from '../common/enums/component-type.enum';
-import { haversineDistanceKm } from '../common/utils/geo.util';
-import { PrismaService } from '../prisma/prisma.service';
-import { CriticalStockResponseDto } from './dto/critical-stock-response.dto';
-import { ExpiringSoonQueryDto } from './dto/expiring-soon-query.dto';
-import { StockSummaryItemDto } from './dto/stock-summary-response.dto';
+import { Injectable, Logger } from '@nestjs/common';
+import { BloodType } from '../common/enums/blood-type.enum.js';
+import { BloodBagStatus } from '../common/enums/blood-bag-status.enum.js';
+import { ComponentType } from '../common/enums/component-type.enum.js';
+import { EventPublisherService } from '../common/events/event-publisher.service.js';
+import { PrismaService } from '../prisma/prisma.service.js';
+import { CriticalStockResponseDto } from './dto/critical-stock-response.dto.js';
+import { StockSummaryItemDto } from './dto/stock-summary-response.dto.js';
 
 @Injectable()
-export class StockService {
-  constructor(private readonly prisma: PrismaService) {}
+export class StockAggregator {
+  private readonly logger = new Logger(StockAggregator.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventPublisher: EventPublisherService,
+  ) {}
 
   async summary(): Promise<StockSummaryItemDto[]> {
     const grouped = await this.prisma.bloodBag.groupBy({
@@ -77,6 +81,9 @@ export class StockService {
             deficit: unit.criticalThreshold - availableCount,
             city: unit.city,
           });
+
+          // Publish stock critical event
+          await this.eventPublisher.publishStockCritical(unit.id, bloodType);
         }
       }
     }
@@ -84,52 +91,33 @@ export class StockService {
     return critical;
   }
 
-  async expiringSoon(query: ExpiringSoonQueryDto) {
-    const now = new Date();
-    const until = new Date(now);
-    until.setDate(until.getDate() + (query.days ?? 7));
-    const bags = await this.prisma.bloodBag.findMany({
+  async getByUnit(unitId: string): Promise<StockSummaryItemDto[]> {
+    const unit = await this.prisma.unit.findUnique({
+      where: { id: unitId },
+      select: { id: true, code: true, name: true, isActive: true },
+    });
+
+    if (!unit || !unit.isActive) {
+      return [];
+    }
+
+    const grouped = await this.prisma.bloodBag.groupBy({
+      by: ['bloodType', 'component'],
       where: {
+        unitId,
         status: BloodBagStatus.AVAILABLE,
-        expiryDate: { gt: now, lte: until },
-        ...(query.unitId ? { unitId: query.unitId } : {}),
-        unit: { isActive: true },
+        expiryDate: { gt: new Date() },
       },
-      include: {
-        unit: true,
-      },
-      orderBy: { expiryDate: 'asc' },
-    });
-    const activeUnits = await this.prisma.unit.findMany({
-      where: { isActive: true },
+      _count: { _all: true },
     });
 
-    return bags.map((bag) => {
-      const suggestions = activeUnits
-        .filter((unit) => unit.id !== bag.unitId)
-        .map((unit) => ({
-          unitId: unit.id,
-          unitCode: unit.code,
-          unitName: unit.name,
-          distanceKm: Number(
-            haversineDistanceKm(
-              Number(bag.unit.latitude),
-              Number(bag.unit.longitude),
-              Number(unit.latitude),
-              Number(unit.longitude),
-            ).toFixed(2),
-          ),
-        }))
-        .sort((a, b) => a.distanceKm - b.distanceKm)
-        .slice(0, 3);
-
-      return {
-        ...bag,
-        daysUntilExpiry: Math.ceil(
-          (bag.expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
-        ),
-        suggestedTargetUnits: suggestions,
-      };
-    });
+    return grouped.map((item) => ({
+      unitId: unit.id,
+      unitCode: unit.code,
+      unitName: unit.name,
+      bloodType: item.bloodType as BloodType,
+      component: item.component as ComponentType,
+      availableCount: item._count._all,
+    }));
   }
 }

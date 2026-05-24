@@ -78,6 +78,12 @@
   "criticalThreshold": 5
 }</textarea>
         <button onclick="api(event, 'POST', '/units', json('unitBody'))">Create Unit</button>
+        <input id="unitIdAction" placeholder="unit id" />
+        <button onclick="api(event, 'GET', '/units/' + val('unitIdAction'))">Get Unit</button>
+        <textarea id="unitPatchBody" rows="4">{
+  "name": "Updated Unit Name"
+}</textarea>
+        <button onclick="api(event, 'PATCH', '/units/' + val('unitIdAction'), json('unitPatchBody'))">Patch Unit</button>
       </section>
       <section>
         <h2>Blood Bags</h2>
@@ -91,12 +97,21 @@
   "unitId": "replace-with-unit-id"
 }</textarea>
         <button onclick="api(event, 'POST', '/blood-bags', json('bagBody'))">Create Blood Bag</button>
+        <input id="bagIdAction" placeholder="blood bag id" />
+        <button onclick="api(event, 'GET', '/blood-bags/' + val('bagIdAction'))">Get Blood Bag</button>
+        <textarea id="bagStatusBody" rows="4">{
+  "status": "RESERVED",
+  "notes": "Reserved via client"
+}</textarea>
+        <button onclick="api(event, 'PATCH', '/blood-bags/' + val('bagIdAction') + '/status', json('bagStatusBody'))">Update Status</button>
       </section>
       <section>
         <h2>Stock</h2>
         <button onclick="api(event, 'GET', '/stock/summary')">Summary</button>
         <button onclick="api(event, 'GET', '/stock/critical')">Critical</button>
         <button onclick="api(event, 'GET', '/stock/expiring-soon?days=7')">Expiring Soon</button>
+        <input id="stockUnitId" placeholder="unit id" />
+        <button onclick="api(event, 'GET', '/stock/by-unit/' + val('stockUnitId'))">Stock by Unit</button>
       </section>
       <section>
         <h2>Transfers</h2>

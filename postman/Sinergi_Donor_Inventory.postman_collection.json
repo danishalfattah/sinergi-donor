@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Sinergi Donor Inventory Service",
-    "description": "Postman collection for Sinergi Donor Inventory Service MVP. Import this collection together with the local environment file.",
+    "description": "Postman collection for Sinergi Donor Inventory Service. Import this collection together with the local environment file.\n\nPerubahan terbaru:\n- [NEW] Stock by Unit endpoint: GET /stock/by-unit/:unitId\n- Endpoint Dispatch Transfer & Cancel Transfer tetap ada di Postman (meski disembunyikan dari Swagger UI)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -19,7 +19,10 @@
               "path": ["units"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "limit", "value": "20" },
+                { "key": "type", "value": "UDD", "disabled": true },
+                { "key": "city", "value": "Malang", "disabled": true },
+                { "key": "province", "value": "Jawa Timur", "disabled": true }
               ]
             }
           }
@@ -96,7 +99,12 @@
               "path": ["blood-bags"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "limit", "value": "20" },
+                { "key": "unitId", "value": "{{unitId}}", "disabled": true },
+                { "key": "bloodType", "value": "O_NEG", "disabled": true },
+                { "key": "component", "value": "PRC", "disabled": true },
+                { "key": "status", "value": "AVAILABLE", "disabled": true },
+                { "key": "expiringBefore", "value": "2026-07-01T00:00:00.000Z", "disabled": true }
               ]
             }
           }
@@ -183,12 +191,15 @@
               "raw": "{{baseUrl}}/stock/expiring-soon?days=7",
               "host": ["{{baseUrl}}"],
               "path": ["stock", "expiring-soon"],
-              "query": [{ "key": "days", "value": "7" }]
+              "query": [
+                { "key": "days", "value": "7" },
+                { "key": "unitId", "value": "{{unitId}}", "disabled": true }
+              ]
             }
           }
         },
         {
-          "name": "Expiring Soon 60 Days",
+          "name": "Expiring Soon (60 Days)",
           "request": {
             "method": "GET",
             "header": [],
@@ -196,7 +207,23 @@
               "raw": "{{baseUrl}}/stock/expiring-soon?days=60",
               "host": ["{{baseUrl}}"],
               "path": ["stock", "expiring-soon"],
-              "query": [{ "key": "days", "value": "60" }]
+              "query": [
+                { "key": "days", "value": "60" },
+                { "key": "unitId", "value": "{{unitId}}", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Stock By Unit [NEW]",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "description": "Mengembalikan stok yang tersedia untuk unit tertentu, dikelompokkan berdasarkan bloodType dan component. Endpoint ini ditambahkan untuk sinkronisasi dengan arsitektur C4 Model.",
+            "url": {
+              "raw": "{{baseUrl}}/stock/by-unit/{{unitId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["stock", "by-unit", "{{unitId}}"]
             }
           }
         }
@@ -216,7 +243,11 @@
               "path": ["stock-transfers"],
               "query": [
                 { "key": "page", "value": "1" },
-                { "key": "limit", "value": "20" }
+                { "key": "limit", "value": "20" },
+                { "key": "fromUnitId", "value": "{{fromUnitId}}", "disabled": true },
+                { "key": "toUnitId", "value": "{{toUnitId}}", "disabled": true },
+                { "key": "status", "value": "PENDING", "disabled": true },
+                { "key": "reason", "value": "MANUAL", "disabled": true }
               ]
             }
           }
@@ -250,10 +281,11 @@
           }
         },
         {
-          "name": "Dispatch Transfer",
+          "name": "Dispatch Transfer [hidden from Swagger]",
           "request": {
             "method": "PATCH",
             "header": [],
+            "description": "Menandai transfer PENDING menjadi IN_TRANSIT. Endpoint ini disembunyikan dari Swagger UI via @ApiExcludeEndpoint() namun tetap berfungsi.",
             "url": {
               "raw": "{{baseUrl}}/stock-transfers/{{transferId}}/dispatch",
               "host": ["{{baseUrl}}"],
@@ -274,7 +306,7 @@
           }
         },
         {
-          "name": "Cancel Transfer",
+          "name": "Cancel Transfer [hidden from Swagger]",
           "request": {
             "method": "PATCH",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
@@ -282,6 +314,7 @@
               "mode": "raw",
               "raw": "{\n  \"cancelReason\": \"Cancelled from Postman\"\n}"
             },
+            "description": "Membatalkan transfer PENDING dan melepas kantong darah kembali ke AVAILABLE. Endpoint ini disembunyikan dari Swagger UI via @ApiExcludeEndpoint() namun tetap berfungsi.",
             "url": {
               "raw": "{{baseUrl}}/stock-transfers/{{transferId}}/cancel",
               "host": ["{{baseUrl}}"],
