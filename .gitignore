@@ -29,3 +29,5 @@ Thumbs.db
 .cache/
 *.tsbuildinfo
 *.local
+
+CONTEXT.md
